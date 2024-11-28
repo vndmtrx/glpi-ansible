@@ -1,0 +1,11 @@
+# ansible/playbook.yml
+---
+- name: Configurações base para todas as máquinas
+  hosts: glpi
+  become: true
+  gather_facts: true
+  roles:
+    - role: sistema
+      tags:
+        - sistema
+        - todas
