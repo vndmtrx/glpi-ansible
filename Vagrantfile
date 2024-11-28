@@ -10,16 +10,16 @@ ENV["VAGRANT_DEFAULT_PROVIDER"] = "libvirt"
 
 # Definição dos nodes com seus IPs e recursos
 nodes = {
-  "haproxy" \
+  "haproxy1" \
     => { "ip" => "172.28.0.11", "memory" => 512, "cpus" => 1 },
-  "memcached" \
-    => { "ip" => "172.28.0.11", "memory" => 512, "cpus" => 1 },
-  "mariadb" \
-    => { "ip" => "172.28.0.21", "memory" => 2048, "cpus" => 2 },
-  "glpi" \
-    => { "ip" => "172.28.0.22", "memory" => 2048, "cpus" => 2 },
-  "monitoramento" \
-    => { "ip" => "172.28.0.12", "memory" => 2048, "cpus" => 1, "as" => false }
+  "memcached1" \
+    => { "ip" => "172.28.0.12", "memory" => 512, "cpus" => 1 },
+  "mariadb1" \
+    => { "ip" => "172.28.0.13", "memory" => 2048, "cpus" => 2 },
+  "glpi1" \
+    => { "ip" => "172.28.0.14", "memory" => 2048, "cpus" => 2 },
+  "monitoramento1" \
+    => { "ip" => "172.28.0.15", "memory" => 2048, "cpus" => 1, "as" => false }
 }
 
 Vagrant.configure("2") do |config|
