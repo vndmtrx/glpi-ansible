@@ -1,0 +1,24 @@
+---
+- name: Instalar dependências
+  ansible.builtin.apt:
+    name: 
+      - gnupg2
+      - python3-pip
+      - python3-pymysql
+      - default-libmysqlclient-dev
+      - python3-mysqldb
+    state: present
+
+- name: Instalar MariaDB
+  ansible.builtin.apt:
+    name:
+      - mariadb-server
+      - mariadb-client
+    state: present
+    update_cache: yes
+
+- name: Garantir serviço ativo
+  ansible.builtin.systemd:
+    name: mariadb
+    enabled: yes
+    state: started
