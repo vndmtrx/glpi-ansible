@@ -1,0 +1,12 @@
+---
+- name: Configurar pacotes
+  ansible.builtin.import_tasks: 01-instalacao.yml
+  tags:
+    - memcached
+    - memcached:pacotes
+
+- name: Aplicar configuração
+  ansible.builtin.import_tasks: 02-configuracao.yml
+  tags:
+    - memcached
+    - memcached:configuracao
