@@ -9,3 +9,13 @@
       tags:
         - sistema
         - todas
+
+- name: Configurar HAProxy
+  hosts: haproxy1
+  become: true
+  gather_facts: true
+  roles:
+    - role: haproxy
+      tags:
+        - haproxy
+        - todas
