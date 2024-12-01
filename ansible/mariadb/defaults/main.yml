@@ -1,0 +1,11 @@
+---
+# Senha do usuário root do MariaDB
+senha_root: "semsenha"
+
+# Configurações do banco GLPI
+banco: "glpi"
+usuario: "glpi"
+senha: "semsenhaglpi"
+
+# Range permitirá conexão apenas do servidor glpi1
+ip_permitido: "{{ hostvars['glpi1']['ansible_host'] }}"
