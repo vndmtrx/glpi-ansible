@@ -22,11 +22,11 @@
     line: LANG="pt_BR.UTF-8"
     create: yes
 
-- name: Habilita o repositório backports
-  ansible.builtin.apt_repository:
-    repo: deb http://deb.debian.org/debian bookworm-backports main contrib non-free non-free-firmware
-    filename: backports
-    state: present
+# - name: Habilita o repositório backports
+#   ansible.builtin.apt_repository:
+#     repo: deb http://deb.debian.org/debian bookworm-backports main contrib non-free non-free-firmware
+#     filename: backports
+#     state: present
 
 - name: Atualizar cache do apt
   ansible.builtin.apt:
