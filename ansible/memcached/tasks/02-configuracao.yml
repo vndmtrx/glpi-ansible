@@ -3,7 +3,7 @@
   ansible.builtin.lineinfile:
     path: /etc/memcached.conf
     regexp: '^-l.*'
-    line: '-l 127.0.0.1,{{ memcached_allowed_ip }}'
+    line: '-l 127.0.0.1,{{ ip_permitido }}'
     backup: yes
 
 - name: Verificar sintaxe da configuração do Memcached

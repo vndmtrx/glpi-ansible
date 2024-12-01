@@ -1,3 +1,3 @@
 ---
 # IP que terá permissão de acesso ao Memcached
-memcached_allowed_ip: "{{ hostvars['glpi1']['ansible_default_ipv4']['address'] }}"
+ip_permitido: "{{ hostvars['glpi1']['ansible_host'] }}"
