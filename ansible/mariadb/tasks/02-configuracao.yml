@@ -1,0 +1,86 @@
+---
+- name: Configurar senha root do MariaDB
+  community.mysql.mysql_user:
+    login_user: root
+    user: root 
+    password: "{{ senha_root }}"
+    host_all: true
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Remover usuários anônimos
+  community.mysql.mysql_user:
+    login_user: root
+    login_password: "{{ senha_root }}"
+    user: ""
+    state: absent
+    host_all: true
+
+- name: Remover acesso remoto do root
+  community.mysql.mysql_query:
+    login_user: root
+    login_password: "{{ senha_root }}"
+    query: "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"
+
+- name: Remover banco de dados test
+  community.mysql.mysql_db:
+    login_user: root
+    login_password: "{{ senha_root }}"
+    name: test
+    state: absent
+
+- name: Remover permissões residuais do banco test
+  community.mysql.mysql_query:
+    login_user: root
+    login_password: "{{ senha_root }}"
+    query: "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'"
+
+- name: Criar banco de dados GLPI
+  community.mysql.mysql_db:
+    login_user: root
+    login_password: "{{ senha_root }}"
+    name: "{{ banco }}"
+    encoding: utf8
+    state: present
+
+- name: Criar usuário GLPI e conceder permissão USAGE
+  community.mysql.mysql_user:
+    login_user: root
+    login_password: "{{ senha_root }}"
+    user: "{{ usuario }}"
+    password: "{{ senha }}"
+    host: "{{ ip_permitido }}"
+    priv: "*.*:USAGE"
+    state: present
+
+- name: Conceder todos os privilégios no banco GLPI
+  community.mysql.mysql_user:
+    login_user: root
+    login_password: "{{ senha_root }}"
+    user: "{{ usuario }}"
+    password: "{{ senha }}"
+    host: "{{ ip_permitido }}"
+    priv: "{{ banco }}.*:ALL"
+    state: present
+
+- name: Importar timezone para MySQL
+  ansible.builtin.shell:
+    cmd: mariadb-tzinfo-to-sql /usr/share/zoneinfo | mariadb -u root mysql
+    creates: /var/lib/mysql/mysql/time_zone.frm
+
+- name: Garantir acesso ao timezone
+  community.mysql.mysql_user:
+    login_user: root
+    login_password: "{{ senha_root }}"
+    user: "{{ usuario }}"
+    password: "{{ senha }}"
+    host: "{{ ip_permitido }}"
+    priv: "mysql.time_zone_name:SELECT"
+    append_privs: true
+    state: present
+
+- name: Forçar aplicação dos privilégios
+  community.mysql.mysql_query:
+    login_user: root
+    login_password: "{{ senha_root }}"
+    query: "FLUSH PRIVILEGES"
