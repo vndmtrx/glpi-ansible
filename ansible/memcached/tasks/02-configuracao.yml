@@ -1,0 +1,18 @@
+---
+- name: Configurar bind do Memcached
+  ansible.builtin.lineinfile:
+    path: /etc/memcached.conf
+    regexp: '^-l.*'
+    line: '-l 127.0.0.1,{{ memcached_allowed_ip }}'
+    backup: yes
+
+- name: Verificar sintaxe da configuração do Memcached
+  ansible.builtin.command:
+    cmd: memcached -V
+  changed_when: false
+
+- name: Reiniciar Memcached
+  ansible.builtin.systemd:
+    name: memcached
+    state: restarted
+    daemon_reload: true
