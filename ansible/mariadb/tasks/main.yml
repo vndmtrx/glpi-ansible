@@ -1,0 +1,12 @@
+---
+- name: Configurar pacotes
+  ansible.builtin.import_tasks: 01-instalacao.yml
+  tags:
+    - mariadb
+    - mariadb:pacotes
+
+- name: Aplicar configuração
+  ansible.builtin.import_tasks: 02-configuracao.yml
+  tags:
+    - mariadb
+    - mariadb:configuracao
