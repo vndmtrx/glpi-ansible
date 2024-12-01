@@ -19,3 +19,23 @@
       tags:
         - haproxy
         - todas
+
+- name: Configurar Memcached
+  hosts: memcached1
+  become: true
+  gather_facts: true
+  roles:
+    - role: memcached
+      tags:
+        - memcached
+        - todas
+
+- name: Configurar MariaDB
+  hosts: mariadb1
+  become: true
+  gather_facts: true
+  roles:
+    - role: mariadb
+      tags:
+        - mariadb
+        - todas
