@@ -1,0 +1,114 @@
+---
+- name: Instalar dependências
+  ansible.builtin.apt:
+    name: 
+      - gnupg2
+      - python3-cryptography
+    state: present
+
+- name: Adiciona chave GPG do HAProxy
+  ansible.builtin.apt_key:
+    url: https://haproxy.debian.net/bernat.debian.org.gpg
+    keyring: /usr/share/keyrings/haproxy.debian.net.gpg
+    state: present
+
+- name: Adiciona repositório HAProxy
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/haproxy.debian.net.gpg] http://haproxy.debian.net bookworm-backports-{{ versao_haproxy }} main"
+    filename: haproxy
+    state: present
+
+- name: Instalar pacotes necessários para o Haproxy
+  ansible.builtin.apt:
+    name:
+      - "haproxy={{ versao_haproxy }}.*"
+      - openssl
+      - socat
+    state: present
+
+- name: Criar diretório temporário para montagem do PEM
+  ansible.builtin.file:
+    path: /etc/haproxy/certs
+    state: directory
+    mode: "0700"
+    owner: haproxy
+    group: haproxy
+
+- name: Gerar chave privada RSA
+  community.crypto.openssl_privatekey:
+    path: /etc/haproxy/certs/haproxy-selfsigned.key
+    type: RSA
+    size: 2048
+    mode: "0600"
+    owner: haproxy
+    group: haproxy
+
+- name: Gerar CSR
+  community.crypto.openssl_csr:
+    path: /etc/haproxy/certs/haproxy-selfsigned.csr
+    privatekey_path: /etc/haproxy/certs/haproxy-selfsigned.key
+    common_name: glpi.local
+    country_name: BR
+    state_or_province_name: Minas Gerais
+    locality_name: Uberlândia
+    organization_name: Hashtag
+    organizational_unit_name: GLPI
+
+- name: Gerar certificado SSL autoassinado
+  community.crypto.x509_certificate:
+    path: /etc/haproxy/certs/haproxy-selfsigned.crt
+    csr_path: /etc/haproxy/certs/haproxy-selfsigned.csr
+    privatekey_path: /etc/haproxy/certs/haproxy-selfsigned.key
+    provider: selfsigned
+    selfsigned_digest: sha256
+    selfsigned_not_after: "+365d"
+    mode: "0644"
+    owner: haproxy
+    group: haproxy
+
+- name: Criar diretório temporário para montagem do PEM
+  ansible.builtin.file:
+    path: /tmp/haproxy
+    state: directory
+    mode: "0700"
+
+- name: Copiar arquivos SSL para diretório temporário em ordem
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "/tmp/haproxy/{{ item.order }}-{{ item.name }}"
+    remote_src: true
+    mode: "0600"
+  loop:
+    - { src: "/etc/haproxy/certs/haproxy-selfsigned.key", order: "01", name: "key" }
+    - { src: "/etc/haproxy/certs/haproxy-selfsigned.crt", order: "02", name: "crt" }
+
+- name: Combinar arquivos em PEM
+  ansible.builtin.assemble:
+    src: /tmp/haproxy
+    dest: /etc/haproxy/certs/haproxy-selfsigned.pem
+    mode: "0600"
+    owner: haproxy
+    group: haproxy
+
+- name: Gerar os parâmetros de DH
+  ansible.builtin.command:
+    cmd: openssl dhparam -out /etc/haproxy/dhparams.pem 2048
+    creates: /etc/haproxy/dhparams.pem
+
+- name: Garantir permissão correta em dhparams
+  ansible.builtin.file:
+    path: /etc/haproxy/dhparams.pem
+    owner: haproxy
+    group: haproxy
+    mode: '0644'
+
+- name: Remover diretório temporário
+  ansible.builtin.file:
+    path: /tmp/haproxy
+    state: absent
+
+- name: Garantir serviço ativo
+  ansible.builtin.systemd:
+    name: haproxy
+    enabled: yes
+    state: started
