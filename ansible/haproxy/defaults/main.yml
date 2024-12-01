@@ -1,0 +1,7 @@
+---
+# Versão do HAProxy a ser instalada
+versao_haproxy: "2.8"
+
+# Credenciais para a página de estatísticas
+haproxy_stats_user: "admin"
+haproxy_stats_password: "semsenha"
