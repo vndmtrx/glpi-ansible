@@ -2,6 +2,7 @@
 - name: Configurar senha root do MariaDB
   community.mysql.mysql_user:
     login_user: root
+    login_password: "{{ senha_root }}"
     user: root 
     password: "{{ senha_root }}"
     host_all: true
@@ -15,12 +16,6 @@
     user: ""
     state: absent
     host_all: true
-
-- name: Remover acesso remoto do root
-  community.mysql.mysql_query:
-    login_user: root
-    login_password: "{{ senha_root }}"
-    query: "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"
 
 - name: Remover banco de dados test
   community.mysql.mysql_db:
