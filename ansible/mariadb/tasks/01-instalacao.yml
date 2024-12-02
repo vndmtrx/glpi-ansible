@@ -22,3 +22,11 @@
     name: mariadb
     enabled: yes
     state: started
+
+- name: Altera bind-address para 0.0.0.0
+  ansible.builtin.lineinfile:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    regexp: '^bind-address\s*='
+    line: 'bind-address = 0.0.0.0'
+    backup: yes
+  notify: restart mariadb
