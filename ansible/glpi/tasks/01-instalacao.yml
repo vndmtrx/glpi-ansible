@@ -1,0 +1,58 @@
+---
+- name: Instalar dependências
+  ansible.builtin.apt:
+    name: 
+      - gnupg2
+      - python3-cryptography
+    state: present
+
+- name: Criar diretório temporário
+  ansible.builtin.file:
+    path: /vagrant/arquivos/tmp
+    state: directory
+    mode: '0755'
+
+- name: Download do GLPI
+  ansible.builtin.get_url:
+    url: "https://github.com/glpi-project/glpi/releases/download/{{ glpi_version }}/glpi-{{ glpi_version }}.tgz"
+    dest: "/vagrant/arquivos/tmp/glpi-{{ glpi_version }}.tgz"
+    mode: '0644'
+
+- name: Adicionar chave do repositório PHP
+  ansible.builtin.apt_key:
+    url: https://packages.sury.org/php/apt.gpg
+    state: present
+
+- name: Adicionar repositório PHP
+  ansible.builtin.apt_repository:
+    repo: "deb https://packages.sury.org/php/ bookworm main"
+    state: present
+    filename: php
+
+- name: Instalar pacotes necessários
+  ansible.builtin.apt:
+    name:
+      - apache2
+      - php8.3
+      - php8.3-mysql
+      - php8.3-gd
+      - php8.3-intl
+      - php8.3-ldap
+      - php8.3-zip
+      - php8.3-curl
+      - php8.3-xml
+      - php8.3-cli
+      - php8.3-mbstring
+      - php8.3-bz2
+      - mariadb-client
+      - libapache2-mod-security2
+      - modsecurity-crs
+      - memcached
+      - php8.3-memcached
+    state: present
+
+- name: Garantir serviço apache ativo
+  ansible.builtin.systemd:
+    name: apache2
+    enabled: yes
+    state: started
