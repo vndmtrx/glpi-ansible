@@ -1,0 +1,121 @@
+---
+- name: Criar diretórios do GLPI
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  loop:
+    - /opt/glpi
+    - /var/lib/glpi/config
+    - /var/lib/glpi/files
+    - /var/lib/glpi/files/_cache
+    - /var/lib/glpi/files/_cron
+    - /var/lib/glpi/files/_dumps
+    - /var/lib/glpi/files/_graphs
+    - /var/lib/glpi/files/_lock
+    - /var/lib/glpi/files/_pictures
+    - /var/lib/glpi/files/_plugins
+    - /var/lib/glpi/files/_rss
+    - /var/lib/glpi/files/_sessions
+    - /var/lib/glpi/files/_tmp
+    - /var/lib/glpi/files/_uploads
+    - /var/lib/glpi/log
+
+- name: Extrair GLPI
+  ansible.builtin.unarchive:
+    src: "/vagrant/arquivos/tmp/glpi-{{ glpi_version }}.tgz"
+    dest: /opt
+    owner: www-data
+    group: www-data
+    remote_src: yes
+
+- name: Configurar VirtualHost
+  ansible.builtin.template:
+    src: glpi-vhost.conf.j2
+    dest: /etc/apache2/sites-available/glpi.conf
+    mode: '0644'
+  notify: reload apache
+
+- name: Habilitar módulos Apache
+  ansible.builtin.apache2_module:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - security2
+    - rewrite
+    - headers
+    - remoteip
+    - proxy_http
+  notify: reload apache
+
+- name: Habilitar site GLPI
+  ansible.builtin.file:
+    src: /etc/apache2/sites-available/glpi.conf
+    dest: /etc/apache2/sites-enabled/glpi.conf
+    state: link
+  notify: reload apache
+
+- name: Configurar PHP
+  ansible.builtin.template:
+    src: php-glpi.ini.j2
+    dest: /etc/php/8.3/apache2/conf.d/99-glpi.ini
+    mode: '0644'
+  notify: reload apache
+
+- name: Configurar GLPI
+  ansible.builtin.template:
+    src: local_define.php.j2
+    dest: /var/lib/glpi/config/local_define.php
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+- name: Configurar downstream.php
+  ansible.builtin.template:
+    src: downstream.php.j2
+    dest: /opt/glpi/inc/downstream.php
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+- name: Configurar banco de dados
+  ansible.builtin.command:
+    cmd: >
+      php /opt/glpi/bin/console db:install
+      -L pt_BR
+      -H {{ db_host }}
+      -d {{ db_name }}
+      -u {{ db_user }}
+      -p {{ db_password }}
+      --enable-telemetry
+      --no-interaction
+  args:
+    creates: /var/lib/glpi/config/config_db.php
+
+- name: Configurar Memcached
+  ansible.builtin.command:
+    cmd: "{{ item }}"
+  loop:
+    - php /opt/glpi/bin/console glpi:cache:configure --use-default
+    - php /opt/glpi/bin/console glpi:cache:configure --dsn=memcached://{{ memcached_server }}
+
+- name: Configurar URL base
+  ansible.builtin.command:
+    cmd: php /opt/glpi/bin/console glpi:config:set url_base "https://{{ glpi_url }}"
+
+- name: Remover arquivo de instalação
+  ansible.builtin.file:
+    path: /opt/glpi/install/install.php
+    state: absent
+
+- name: Ajustar permissões finais
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: www-data
+    group: www-data
+    recurse: yes
+  loop:
+    - /opt/glpi
+    - /var/lib/glpi
