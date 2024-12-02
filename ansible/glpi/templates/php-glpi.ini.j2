@@ -1,0 +1,14 @@
+[PHP]
+memory_limit = {{ php_memory_limit }}
+max_execution_time = {{ php_max_execution_time }}
+upload_max_filesize = {{ php_upload_max_filesize }}
+post_max_size = {{ php_post_max_size }}
+
+[Session]
+session.auto_start = 0
+session.use_trans_sid = 0
+session.cookie_httponly = On
+session.cookie_samesite = Lax
+
+[Date]
+date.timezone = {{ timezone }}

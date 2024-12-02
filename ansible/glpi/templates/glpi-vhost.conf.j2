@@ -1,0 +1,24 @@
+<VirtualHost *:80>
+    DocumentRoot "/opt/glpi"
+    ServerName {{ glpi_url }}
+
+    LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" proxy
+    CustomLog ${APACHE_LOG_DIR}/access.log proxy
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+
+    RemoteIPHeader X-Forwarded-For
+    RemoteIPInternalProxy {{ hostvars['haproxy1']['ansible_host'] }}
+
+    ProxyPreserveHost On
+    RequestHeader set X-Forwarded-Proto "https"
+    RequestHeader set X-Forwarded-Port "443"
+
+    SecRuleEngine On
+    SecRule ARGS:testparam "@contains teste" "id:1234,deny,status:403,msg:'Regra de teste do mod_security foi acionada'"
+
+    <Directory /opt/glpi>
+        Options FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
