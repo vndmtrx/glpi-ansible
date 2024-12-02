@@ -39,3 +39,13 @@
       tags:
         - mariadb
         - todas
+
+- name: Instalar GLPI
+  hosts: glpi1
+  become: true
+  gather_facts: true
+  roles:
+    - role: glpi
+      tags:
+        - glpi
+        - todas
