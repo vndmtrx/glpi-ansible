@@ -10,3 +10,9 @@
   tags:
     - glpi
     - glpi:configuracao
+
+- name: Instalar configurações extras
+  ansible.builtin.import_tasks: 03-post-config.yml
+  tags:
+    - glpi
+    - glpi:post-config
