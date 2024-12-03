@@ -1,0 +1,46 @@
+---
+# GLPI
+
+## Versão do GLPI
+glpi_version: "10.0.17"
+
+## Configurações gerais
+glpi_url: "glpi.local"
+timezone: "America/Sao_Paulo"
+
+## Configurações do banco
+db_host: "{{ hostvars['mariadb1']['ansible_host'] }}"
+db_name: "glpi"
+db_user: "glpi"
+db_password: "semsenhaglpi"
+
+## Configurações de cache
+memcached_server: "{{ hostvars['memcached1']['ansible_host'] }}"
+
+## Configurações do PHP
+php_memory_limit: "256M"
+php_max_execution_time: "600"
+php_upload_max_filesize: "20M"
+php_post_max_size: "20M"
+
+# Haproxy
+
+## Versão do HAProxy a ser instalada
+versao_haproxy: "2.8"
+
+## Credenciais para a página de estatísticas
+haproxy_stats_user: "admin"
+haproxy_stats_password: "semsenha"
+
+#Mariadb
+
+# Senha do usuário root do MariaDB
+senha_root: "semsenha"
+
+# Configurações do banco GLPI
+banco: "glpi"
+usuario: "glpi"
+senha: "semsenhaglpi"
+
+# Range permitirá conexão apenas do servidor glpi1
+ip_permitido: "{{ hostvars['glpi1']['ansible_host'] }}"
