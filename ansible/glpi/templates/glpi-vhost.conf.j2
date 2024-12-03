@@ -1,6 +1,6 @@
 <VirtualHost *:80>
-    DocumentRoot "/opt/glpi"
-    ServerName {{ glpi_url }}
+    DocumentRoot "/opt/glpi/public"
+    #ServerName {{ glpi_url }}
 
     LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" proxy
     CustomLog ${APACHE_LOG_DIR}/access.log proxy
@@ -16,9 +16,19 @@
     SecRuleEngine On
     SecRule ARGS:testparam "@contains teste" "id:1234,deny,status:403,msg:'Regra de teste do mod_security foi acionada'"
 
-    <Directory /opt/glpi>
+    <Directory /opt/glpi/public>
         Options FollowSymLinks
         AllowOverride All
         Require all granted
+
+        RewriteEngine On
+        # Redireciona todas as requisições para o index.php do GLPI, exceto se o arquivo existir
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteRule ^(.*)$ index.php [QSA,L]
     </Directory>
+
+    # Proteção adicional para diretórios sensíveis
+    <DirectoryMatch "^/opt/glpi/(config|marketplace|files|scripts|src|vendor|tests|lib|node_modules)">
+        Require all denied
+    </DirectoryMatch>
 </VirtualHost>
