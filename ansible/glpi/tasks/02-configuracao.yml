@@ -50,6 +50,11 @@
     - proxy_http
   notify: reload apache
 
+- name: Desabilitar o Apache Virtualhost padrão
+  ansible.builtin.file:
+    path: /etc/apache2/sites-enabled/000-default.conf
+    state: absent
+
 - name: Habilitar site GLPI
   ansible.builtin.file:
     src: /etc/apache2/sites-available/glpi.conf
