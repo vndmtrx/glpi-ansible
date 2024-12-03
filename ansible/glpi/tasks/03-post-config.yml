@@ -1,0 +1,22 @@
+---
+- name: Alterar senha dos usuários padrão
+  community.mysql.mysql_query:
+    login_host: "{{ db_host }}"
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    login_db: "{{ db_name }}"
+    query: >
+      UPDATE glpi_users
+      SET password='$2y$05$JqCsASet9LMDeSDwk4Ea/eHmRwYLSE5Fzz7uEeBqypdHtLwtnY22a'
+      WHERE name IN ('post-only', 'tech', 'normal', 'glpi');
+
+- name: Configurar CRON do GLPI
+  ansible.builtin.cron:
+    name: "GLPI Cron"
+    minute: "*"
+    hour: "*"
+    day: "*"
+    month: "*"
+    weekday: "*"
+    user: www-data
+    job: "/usr/bin/php -f /opt/glpi/front/cron.php"
