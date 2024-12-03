@@ -3,7 +3,10 @@
   ansible.builtin.apt:
     name: 
       - gnupg2
-      - python3-cryptography
+      - python3-pip
+      - python3-pymysql
+      - default-libmysqlclient-dev
+      - python3-mysqldb
     state: present
 
 - name: Criar diretório temporário
