@@ -60,14 +60,14 @@
     src: /etc/apache2/sites-available/glpi.conf
     dest: /etc/apache2/sites-enabled/glpi.conf
     state: link
-  notify: reload apache
+  notify: restart apache
 
 - name: Configurar PHP
   ansible.builtin.template:
     src: php-glpi.ini.j2
     dest: /etc/php/8.3/apache2/conf.d/99-glpi.ini
     mode: '0644'
-  notify: reload apache
+  notify: restart apache
 
 - name: Configurar GLPI
   ansible.builtin.template:
@@ -85,35 +85,45 @@
     group: www-data
     mode: '0644'
 
+- name: Ajustar permissões
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: www-data
+    group: www-data
+    recurse: yes
+  loop:
+    - /opt/glpi
+    - /var/lib/glpi
+
 - name: Configurar banco de dados
-  ansible.builtin.command:
-    cmd: >
-      php /opt/glpi/bin/console db:install
+  ansible.builtin.shell: >
+      echo yes | php /opt/glpi/bin/console db:install
       -L pt_BR
       -H {{ db_host }}
       -d {{ db_name }}
       -u {{ db_user }}
       -p {{ db_password }}
       --enable-telemetry
-      --no-interaction
   args:
     creates: /var/lib/glpi/config/config_db.php
 
 - name: Configurar Memcached
-  ansible.builtin.command:
-    cmd: "{{ item }}"
+  ansible.builtin.shell: |
+    echo yes | {{ item }}
   loop:
     - php /opt/glpi/bin/console glpi:cache:configure --use-default
     - php /opt/glpi/bin/console glpi:cache:configure --dsn=memcached://{{ memcached_server }}
 
 - name: Configurar URL base
-  ansible.builtin.command:
-    cmd: php /opt/glpi/bin/console glpi:config:set url_base "https://{{ glpi_url }}"
+  ansible.builtin.shell: |
+    echo yes | {{ item }}
+  loop:
+    - php /opt/glpi/bin/console glpi:config:set url_base "https://{{ glpi_url }}"
 
-- name: Remover arquivo de instalação
-  ansible.builtin.file:
-    path: /opt/glpi/install/install.php
-    state: absent
+# - name: Remover arquivo de instalação
+#   ansible.builtin.file:
+#     path: /opt/glpi/install/install.php
+#     state: absent
 
 - name: Ajustar permissões finais
   ansible.builtin.file:
@@ -124,3 +134,7 @@
   loop:
     - /opt/glpi
     - /var/lib/glpi
+  notify: reload apache
+
+- name: Forçar flush dos handlers imediatamente
+  ansible.builtin.meta: flush_handlers

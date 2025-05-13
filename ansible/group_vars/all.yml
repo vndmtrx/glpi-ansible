@@ -2,7 +2,7 @@
 # GLPI
 
 ## Versão do GLPI
-glpi_version: "10.0.17"
+glpi_version: "11.0.0-beta3"
 
 ## Configurações gerais
 glpi_url: "glpi.local"

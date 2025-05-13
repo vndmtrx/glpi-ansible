@@ -47,6 +47,7 @@
       - php8.3-cli
       - php8.3-mbstring
       - php8.3-bz2
+      - php8.3-bcmath
       - mariadb-client
       - libapache2-mod-security2
       - modsecurity-crs
